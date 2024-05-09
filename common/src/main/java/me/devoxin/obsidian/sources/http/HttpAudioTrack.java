@@ -1,4 +1,4 @@
-package me.devoxin.obsidian.http;
+package me.devoxin.obsidian.sources.http;
 
 import com.sedmelluq.discord.lavaplayer.container.MediaContainerDescriptor;
 import com.sedmelluq.discord.lavaplayer.source.AudioSourceManager;

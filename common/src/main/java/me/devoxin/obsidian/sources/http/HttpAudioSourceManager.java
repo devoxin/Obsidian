@@ -1,4 +1,4 @@
-package me.devoxin.obsidian.http;
+package me.devoxin.obsidian.sources.http;
 
 import com.google.common.net.InternetDomainName;
 import com.sedmelluq.discord.lavaplayer.container.*;
@@ -13,7 +13,6 @@ import com.sedmelluq.discord.lavaplayer.track.AudioTrack;
 import com.sedmelluq.discord.lavaplayer.track.AudioTrackInfo;
 import com.sedmelluq.discord.lavaplayer.track.info.AudioTrackInfoBuilder;
 import org.apache.http.HttpStatus;
-import org.apache.http.client.config.CookieSpecs;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.utils.URIBuilder;
 import org.apache.http.impl.client.HttpClientBuilder;

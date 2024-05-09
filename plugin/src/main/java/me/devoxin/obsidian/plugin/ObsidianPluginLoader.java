@@ -5,8 +5,12 @@ import com.sedmelluq.discord.lavaplayer.player.AudioPlayerManager;
 import dev.arbjerg.lavalink.api.AudioPlayerManagerConfiguration;
 import lavalink.server.config.HttpConfig;
 import lavalink.server.config.ServerConfig;
-import me.devoxin.obsidian.http.HttpAudioSourceManager;
-import me.devoxin.obsidian.http.HttpSourceConfiguration;
+import me.devoxin.obsidian.sources.http.HttpAudioSourceManager;
+import org.apache.http.HttpHost;
+import org.apache.http.auth.AuthScope;
+import org.apache.http.auth.UsernamePasswordCredentials;
+import org.apache.http.client.CredentialsProvider;
+import org.apache.http.impl.client.BasicCredentialsProvider;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -46,7 +50,29 @@ public class ObsidianPluginLoader implements AudioPlayerManagerConfiguration {
         // to never be queried.
         scheduler.schedule(() -> {
             log.info("Registering HTTP source...");
-            manager.registerSourceManager(new HttpAudioSourceManager(MediaContainerRegistry.DEFAULT_REGISTRY, httpSourceConfig.getAsSourceConfig()));
+            HttpAudioSourceManager http = new HttpAudioSourceManager(MediaContainerRegistry.DEFAULT_REGISTRY, httpSourceConfig.getAsSourceConfig());
+
+            if (serverHttpConfig != null) {
+                http.configureBuilder(builder -> {
+                    if (!serverHttpConfig.getProxyHost().isBlank()) {
+                        log.info("Using HTTP proxy.");
+                        builder.setProxy(new HttpHost(serverHttpConfig.getProxyHost(), serverHttpConfig.getProxyPort()));
+
+                        if (!serverHttpConfig.getProxyUser().isBlank()) {
+                            log.info("Using HTTP proxy authentication.");
+                            CredentialsProvider credsProvider = new BasicCredentialsProvider();
+                            credsProvider.setCredentials(
+                                new AuthScope(serverHttpConfig.getProxyHost(), serverHttpConfig.getProxyPort()),
+                                new UsernamePasswordCredentials(serverHttpConfig.getProxyUser(), serverHttpConfig.getProxyPassword())
+                            );
+
+                            builder.setDefaultCredentialsProvider(credsProvider);
+                        }
+                    }
+                });
+            }
+
+            manager.registerSourceManager(http);
         }, 5, TimeUnit.SECONDS);
     }
 

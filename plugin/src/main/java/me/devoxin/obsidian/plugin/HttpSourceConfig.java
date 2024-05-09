@@ -1,6 +1,6 @@
 package me.devoxin.obsidian.plugin;
 
-import me.devoxin.obsidian.http.HttpSourceConfiguration;
+import me.devoxin.obsidian.sources.http.HttpSourceConfiguration;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.stereotype.Component;
 
