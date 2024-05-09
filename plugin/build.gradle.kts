@@ -27,6 +27,13 @@ java {
     targetCompatibility = JavaVersion.VERSION_11
 }
 
+tasks.register("sourcesJar", Jar::class) {
+    archiveClassifier.set("sources")
+    from(sourceSets["main"].allSource)
+}
+
 tasks.jar {
     dependsOn(project(":common").tasks.jar)
+    from(configurations.runtimeClasspath.get().map(::zipTree))
+    duplicatesStrategy = DuplicatesStrategy.WARN
 }
