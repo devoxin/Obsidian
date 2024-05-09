@@ -1,9 +1,12 @@
 package me.devoxin.obsidian.plugin;
 
+import com.sedmelluq.discord.lavaplayer.container.MediaContainerRegistry;
 import com.sedmelluq.discord.lavaplayer.player.AudioPlayerManager;
 import dev.arbjerg.lavalink.api.AudioPlayerManagerConfiguration;
 import lavalink.server.config.HttpConfig;
 import lavalink.server.config.ServerConfig;
+import me.devoxin.obsidian.http.HttpAudioSourceManager;
+import me.devoxin.obsidian.http.HttpSourceConfiguration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -43,7 +46,7 @@ public class ObsidianPluginLoader implements AudioPlayerManagerConfiguration {
         // to never be queried.
         scheduler.schedule(() -> {
             log.info("Registering HTTP source...");
-            // TODO
+            manager.registerSourceManager(new HttpAudioSourceManager(MediaContainerRegistry.DEFAULT_REGISTRY, httpSourceConfig.getAsSourceConfig()));
         }, 5, TimeUnit.SECONDS);
     }
 

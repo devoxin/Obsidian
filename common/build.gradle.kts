@@ -15,4 +15,7 @@ dependencies {
     compileOnly(libs.annotations)
 
     testImplementation(libs.slf4j)
+    testImplementation(libs.lavaplayer.v1)
+    testImplementation(libs.log4j.core)
+    testImplementation(libs.log4j.slf4j.impl)
 }

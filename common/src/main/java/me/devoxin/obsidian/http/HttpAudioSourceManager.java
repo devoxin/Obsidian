@@ -13,6 +13,7 @@ import com.sedmelluq.discord.lavaplayer.track.AudioTrack;
 import com.sedmelluq.discord.lavaplayer.track.AudioTrackInfo;
 import com.sedmelluq.discord.lavaplayer.track.info.AudioTrackInfoBuilder;
 import org.apache.http.HttpStatus;
+import org.apache.http.client.config.CookieSpecs;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.utils.URIBuilder;
 import org.apache.http.impl.client.HttpClientBuilder;
@@ -77,10 +78,12 @@ public class HttpAudioSourceManager extends ProbingAudioSourceManager implements
         try {
             URIBuilder builder = new URIBuilder(url);
             String exact = builder.getHost();
-            InternetDomainName domain = InternetDomainName.from(url);
+            InternetDomainName domain = InternetDomainName.from(exact);
             InternetDomainName suffix = domain.publicSuffix();
             String hostWithTld = domain.topPrivateDomain().toString();
-            String hostWithoutTld = suffix != null ? hostWithTld.substring(0, hostWithTld.indexOf(suffix.toString())) : hostWithTld;
+            String hostWithoutTld = suffix != null
+                ? hostWithTld.substring(0, hostWithTld.indexOf(suffix.toString()) - 1)
+                : hostWithTld;
 
             return httpSourceConfiguration.isAllowed(exact, hostWithTld, hostWithoutTld);
         } catch (URISyntaxException | IllegalStateException ignored) {
@@ -159,8 +162,9 @@ public class HttpAudioSourceManager extends ProbingAudioSourceManager implements
             int statusCode = inputStream.checkStatusCode();
             String redirectUrl = HttpClientTools.getRedirectLocation(reference.identifier, inputStream.getCurrentResponse());
 
-            if (redirectUrl != null) {
+            if (redirectUrl != null && httpSourceConfiguration.isFollowRedirects()) {
                 if (!isAllowed(redirectUrl)) {
+                    log.debug("Disallowing redirect to \"{}\" for identifier \"{}\"", redirectUrl, reference.identifier);
                     return null;
                 }
 

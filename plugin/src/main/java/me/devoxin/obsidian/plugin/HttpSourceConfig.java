@@ -1,5 +1,6 @@
 package me.devoxin.obsidian.plugin;
 
+import me.devoxin.obsidian.http.HttpSourceConfiguration;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.stereotype.Component;
 
@@ -45,5 +46,9 @@ public class HttpSourceConfig implements Toggleable {
 
     public void setHosts(Map<String, String> hosts) {
         this.hosts = hosts;
+    }
+
+    public HttpSourceConfiguration getAsSourceConfig() {
+        return new HttpSourceConfiguration(followRedirects, blockAll, hosts);
     }
 }
