@@ -67,6 +67,9 @@ public class HttpAudioSourceManager extends ProbingAudioSourceManager implements
                 .setRedirectStrategy(new HttpClientTools.NoRedirectsStrategy()),
             HttpClientTools.DEFAULT_REQUEST_CONFIG
         );
+
+        log.info("Initialised HTTP source with the following options:\nFollow Redirects: {}\nBlock All: {}\nHosts: {}",
+            configuration.isFollowRedirects(), configuration.isBlockAll(), configuration.getHosts());
     }
 
     @Override
@@ -85,9 +88,10 @@ public class HttpAudioSourceManager extends ProbingAudioSourceManager implements
                 ? hostWithTld.substring(0, hostWithTld.indexOf(suffix.toString()) - 1)
                 : hostWithTld;
 
+            log.trace("URL: {}\nExact: {}\nDomain (TLD): {}\nDomain (No TLD): {}", url, exact, hostWithTld, hostWithoutTld);
             return httpSourceConfiguration.isAllowed(exact, hostWithTld, hostWithoutTld);
-        } catch (URISyntaxException | IllegalStateException ignored) {
-
+        } catch (URISyntaxException | IllegalStateException | IllegalArgumentException e) {
+            log.debug("Couldn't determine permission of \"{}\"", url, e);
         }
 
         return !httpSourceConfiguration.isBlockAll();
@@ -100,6 +104,8 @@ public class HttpAudioSourceManager extends ProbingAudioSourceManager implements
         if (httpReference == null) {
             return null;
         }
+
+        log.debug("Attempting to load identifier \"{}\"", reference.identifier);
 
         if (!isAllowed(httpReference.identifier)) {
             log.debug("Disallowing load request for identifier \"{}\"", reference.identifier);

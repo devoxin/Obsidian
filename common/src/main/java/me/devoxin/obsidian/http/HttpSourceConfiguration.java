@@ -1,11 +1,16 @@
 package me.devoxin.obsidian.http;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.util.Collections;
 import java.util.Map;
 
 public class HttpSourceConfiguration {
+    private static final Logger log = LoggerFactory.getLogger(HttpSourceConfiguration.class);
+
     private final boolean followRedirects;
-    private boolean blockAll = false;
+    private final boolean blockAll;
     private final Map<String, String> hosts;
 
     public HttpSourceConfiguration(final boolean followRedirects,
@@ -47,20 +52,26 @@ public class HttpSourceConfiguration {
 
         if (blockAll) {
             if ("allow".equals(entryWithoutTld)) {
+                log.trace("[blockAll] TLD-less domain is permitted, checking whether domain with TLD or exact entry blocks.");
                 return !"block".equals(entryDomain) && !"block".equals(entryExact);
             } else if ("allow".equals(entryDomain)) {
+                log.trace("[blockAll] Domain with TLD is permitted, checking whether exact entry blocks.");
                 return !"block".equals(entryExact);
             } else {
+                log.trace("[blockAll] Checking whether exact entry is allowed.");
                 return "allow".equals(entryExact);
             }
         }
 
         if ("block".equals(entryWithoutTld)) {
+            log.trace("TLD-less domain is blocked, checking whether domain with TLD or exact entry allows.");
             return "allow".equals(entryDomain) || "allow".equals(entryExact);
         } else if ("block".equals(entryDomain)) {
-            return "allow".equals(exact);
+            log.trace("Domain with TLD is blocked, checking whether exact entry allows.");
+            return "allow".equals(entryExact);
         } else {
-            return !"block".equals(exact);
+            log.trace("Checking whether exact entry is blocked.");
+            return !"block".equals(entryExact);
         }
     }
 }
