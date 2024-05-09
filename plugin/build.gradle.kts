@@ -8,7 +8,7 @@ lavalinkPlugin {
     path = "me.devoxin.obsidian.plugin"
     apiVersion = libs.versions.lavalink
     serverVersion = "4.0.4"
-    configurePublishing = false
+    configurePublishing = true
 }
 
 base {
@@ -25,11 +25,6 @@ dependencies {
 java {
     sourceCompatibility = JavaVersion.VERSION_11
     targetCompatibility = JavaVersion.VERSION_11
-}
-
-tasks.register("sourcesJar", Jar::class) {
-    archiveClassifier.set("sources")
-    from(sourceSets["main"].allSource)
 }
 
 tasks.jar {
