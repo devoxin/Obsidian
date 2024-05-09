@@ -19,3 +19,8 @@ dependencies {
     testImplementation(libs.log4j.core)
     testImplementation(libs.log4j.slf4j.impl)
 }
+
+java {
+    sourceCompatibility = JavaVersion.VERSION_11
+    targetCompatibility = JavaVersion.VERSION_11
+}
