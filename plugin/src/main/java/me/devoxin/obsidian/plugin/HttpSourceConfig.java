@@ -13,7 +13,9 @@ public class HttpSourceConfig implements Toggleable {
     private boolean enabled = true;
     private boolean followRedirects = true;
     private boolean blockAll = false;
+    private boolean proxyAll = true;
     private Map<String, String> hosts = Collections.emptyMap();
+    private Map<String, String> proxy = Collections.emptyMap();
 
     @Override
     public boolean isEnabled() {
@@ -28,8 +30,16 @@ public class HttpSourceConfig implements Toggleable {
         return blockAll;
     }
 
+    public boolean isProxyAll() {
+        return proxyAll;
+    }
+
     public Map<String, String> getHosts() {
         return hosts;
+    }
+
+    public Map<String, String> getProxy() {
+        return proxy;
     }
 
     public void setEnabled(boolean enabled) {
@@ -44,11 +54,19 @@ public class HttpSourceConfig implements Toggleable {
         this.blockAll = blockAll;
     }
 
+    public void setProxyAll(boolean proxyAll) {
+        this.proxyAll = proxyAll;
+    }
+
     public void setHosts(Map<String, String> hosts) {
         this.hosts = hosts;
     }
 
+    public void setProxy(Map<String, String> proxy) {
+        this.proxy = proxy;
+    }
+
     public HttpSourceConfiguration getAsSourceConfig() {
-        return new HttpSourceConfiguration(followRedirects, blockAll, hosts);
+        return new HttpSourceConfiguration(followRedirects, blockAll, proxyAll, hosts, proxy);
     }
 }
