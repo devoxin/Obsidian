@@ -87,13 +87,33 @@ public class HttpAudioSourceManager extends ProbingAudioSourceManager implements
                 ? hostWithTld.substring(0, hostWithTld.indexOf(suffix.toString()) - 1)
                 : hostWithTld;
 
-            log.trace("URL: {}\nExact: {}\nDomain (TLD): {}\nDomain (No TLD): {}", url, exact, hostWithTld, hostWithoutTld);
+            log.trace("Host check: URL: {}\nExact: {}\nDomain (TLD): {}\nDomain (No TLD): {}", url, exact, hostWithTld, hostWithoutTld);
             return httpSourceConfiguration.isAllowed(exact, hostWithTld, hostWithoutTld);
         } catch (URISyntaxException | IllegalStateException | IllegalArgumentException e) {
             log.debug("Couldn't determine permission of \"{}\"", url, e);
         }
 
         return !httpSourceConfiguration.isBlockAll();
+    }
+
+    public boolean isProxied(String url) {
+        try {
+            URIBuilder builder = new URIBuilder(url);
+            String exact = builder.getHost();
+            InternetDomainName domain = InternetDomainName.from(exact);
+            InternetDomainName suffix = domain.publicSuffix();
+            String hostWithTld = domain.topPrivateDomain().toString();
+            String hostWithoutTld = suffix != null
+                ? hostWithTld.substring(0, hostWithTld.indexOf(suffix.toString()) - 1)
+                : hostWithTld;
+
+            log.trace("Proxy check: URL: {}\nExact: {}\nDomain (TLD): {}\nDomain (No TLD): {}", url, exact, hostWithTld, hostWithoutTld);
+            return httpSourceConfiguration.isProxied(exact, hostWithTld, hostWithoutTld);
+        } catch (URISyntaxException | IllegalStateException | IllegalArgumentException e) {
+            log.debug("Couldn't determine permission of \"{}\"", url, e);
+        }
+
+        return httpSourceConfiguration.isProxyAll();
     }
 
     @Override
@@ -154,6 +174,19 @@ public class HttpAudioSourceManager extends ProbingAudioSourceManager implements
         MediaContainerDetectionResult result;
 
         try (HttpInterface httpInterface = getHttpInterface()) {
+            // could probably just use a route planner for this
+            if (!isProxied(reference.identifier)) {
+                log.trace("{} is not to be proxied, resetting proxy for this request.", reference.identifier);
+
+                RequestConfig config = RequestConfig.copy(httpInterface.getContext().getRequestConfig())
+                    .setProxy(null)
+                    .build();
+
+                httpInterface.getContext().setRequestConfig(config);
+            } else {
+                log.trace("Using proxy for {}", reference.identifier);
+            }
+
             result = detectContainerWithClient(httpInterface, reference);
         } catch (IOException e) {
             throw new FriendlyException("Connecting to the URL failed.", SUSPICIOUS, e);

@@ -16,6 +16,7 @@ base {
 }
 
 dependencies {
+    implementation("com.github.devoxin:obsidian:35f377e")
     implementation(projects.common)
     compileOnly(libs.lavalink.server)
     compileOnly(libs.slf4j)

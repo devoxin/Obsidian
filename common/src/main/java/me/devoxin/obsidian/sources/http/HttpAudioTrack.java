@@ -10,6 +10,7 @@ import com.sedmelluq.discord.lavaplayer.track.AudioTrackInfo;
 import com.sedmelluq.discord.lavaplayer.track.DelegatedAudioTrack;
 import com.sedmelluq.discord.lavaplayer.track.InternalAudioTrack;
 import com.sedmelluq.discord.lavaplayer.track.playback.LocalAudioTrackExecutor;
+import org.apache.http.client.config.RequestConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -48,6 +49,19 @@ public class HttpAudioTrack extends DelegatedAudioTrack {
     @Override
     public void process(LocalAudioTrackExecutor localExecutor) throws Exception {
         try (HttpInterface httpInterface = sourceManager.getHttpInterface()) {
+            // could probably just use a route planner for this
+            if (!sourceManager.isProxied(trackInfo.identifier)) {
+                log.trace("{} is not to be proxied, resetting proxy for this request.", trackInfo.identifier);
+
+                RequestConfig config = RequestConfig.copy(httpInterface.getContext().getRequestConfig())
+                    .setProxy(null)
+                    .build();
+
+                httpInterface.getContext().setRequestConfig(config);
+            } else {
+                log.trace("Using proxy for {}", trackInfo.identifier);
+            }
+
             log.debug("Starting http track from URL: {}", trackInfo.identifier);
 
             try (PersistentHttpStream inputStream = new PersistentHttpStream(httpInterface, new URI(trackInfo.identifier), Units.CONTENT_LENGTH_UNKNOWN)) {

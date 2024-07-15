@@ -11,18 +11,24 @@ public class HttpSourceConfiguration {
 
     private final boolean followRedirects;
     private final boolean blockAll;
+    private final boolean proxyAll;
     private final Map<String, String> hosts;
+    private final Map<String, String> proxy;
 
     public HttpSourceConfiguration(final boolean followRedirects,
                                    final boolean blockAll,
-                                   final Map<String, String> hosts) {
+                                   final boolean proxyAll,
+                                   final Map<String, String> hosts,
+                                   final Map<String, String> proxy) {
         this.followRedirects = followRedirects;
         this.blockAll = blockAll;
+        this.proxyAll = proxyAll;
         this.hosts = hosts;
+        this.proxy = proxy;
     }
 
     public static HttpSourceConfiguration defaultConfiguration() {
-        return new HttpSourceConfiguration(true, false, Collections.emptyMap());
+        return new HttpSourceConfiguration(true, false, true, Collections.emptyMap(), Collections.emptyMap());
     }
 
     public boolean isFollowRedirects() {
@@ -33,45 +39,75 @@ public class HttpSourceConfiguration {
         return blockAll;
     }
 
+    public boolean isProxyAll() {
+        return proxyAll;
+    }
+
     public Map<String, String> getHosts() {
         return hosts;
     }
 
-    private String getHostEntry(String key, String default_) {
-        return hosts.getOrDefault(key, default_);
+    private String getEntry(Map<String, String> collection, String key, String default_) {
+        return collection.getOrDefault(key, default_);
     }
 
-    // Yep, this is a mess. It is 03:48 and logic has begun to fail me as I become tired.
-    // Will I clean this up? Probably not. Don't fix what's not broken.
-    // At least... I don't think it's broken. I wrote some sketchy tests which are all valid
-    // so... I believe this is working as intended.
     public boolean isAllowed(String exact, String domain, String domainWithoutTld) {
-        String entryWithoutTld = getHostEntry(domainWithoutTld, null);
-        String entryDomain = getHostEntry(domain, null);
-        String entryExact = getHostEntry(exact, null);
+        String entryWithoutTld = getEntry(hosts, domainWithoutTld, null);
+        String entryDomain = getEntry(hosts, domain, null);
+        String entryExact = getEntry(hosts, exact, null);
 
         if (blockAll) {
             if ("allow".equals(entryWithoutTld)) {
-                log.trace("[blockAll] TLD-less domain is permitted, checking whether domain with TLD or exact entry blocks.");
+                log.trace("Hosts(blockAll): TLD-less domain is permitted, checking whether domain with TLD or exact entry blocks.");
                 return !"block".equals(entryDomain) && !"block".equals(entryExact);
             } else if ("allow".equals(entryDomain)) {
-                log.trace("[blockAll] Domain with TLD is permitted, checking whether exact entry blocks.");
+                log.trace("Hosts(blockAll): Domain with TLD is permitted, checking whether exact entry blocks.");
                 return !"block".equals(entryExact);
             } else {
-                log.trace("[blockAll] Checking whether exact entry is allowed.");
+                log.trace("Hosts(blockAll): Checking whether exact entry is allowed.");
                 return "allow".equals(entryExact);
             }
         }
 
         if ("block".equals(entryWithoutTld)) {
-            log.trace("TLD-less domain is blocked, checking whether domain with TLD or exact entry allows.");
+            log.trace("Hosts: TLD-less domain is blocked, checking whether domain with TLD or exact entry allows.");
             return "allow".equals(entryDomain) || "allow".equals(entryExact);
         } else if ("block".equals(entryDomain)) {
-            log.trace("Domain with TLD is blocked, checking whether exact entry allows.");
+            log.trace("Hosts: Domain with TLD is blocked, checking whether exact entry allows.");
             return "allow".equals(entryExact);
         } else {
-            log.trace("Checking whether exact entry is blocked.");
+            log.trace("Hosts: Checking whether exact entry is blocked.");
             return !"block".equals(entryExact);
+        }
+    }
+
+    public boolean isProxied(String exact, String domain, String domainWithoutTld) {
+        String entryWithoutTld = getEntry(proxy, domainWithoutTld, null);
+        String entryDomain = getEntry(proxy, domain, null);
+        String entryExact = getEntry(proxy, exact, null);
+
+        if (proxyAll) {
+            if ("bypass".equals(entryWithoutTld)) {
+                log.trace("Proxy(blockAll): TLD-less domain is permitted, checking whether domain with TLD or exact entry proxies.");
+                return !"proxy".equals(entryDomain) && !"proxy".equals(entryExact);
+            } else if ("bypass".equals(entryDomain)) {
+                log.trace("Proxy(blockAll): Domain with TLD is permitted, checking whether exact entry proxies.");
+                return !"proxy".equals(entryExact);
+            } else {
+                log.trace("Proxy(blockAll): Checking whether exact entry is bypassed.");
+                return "bypass".equals(entryExact);
+            }
+        }
+
+        if ("proxy".equals(entryWithoutTld)) {
+            log.trace("Proxy: TLD-less domain is proxied, checking whether domain with TLD or exact entry bypasses.");
+            return "bypass".equals(entryDomain) || "bypass".equals(entryExact);
+        } else if ("proxy".equals(entryDomain)) {
+            log.trace("Proxy: Domain with TLD is proxied, checking whether exact entry bypasses.");
+            return "bypass".equals(entryExact);
+        } else {
+            log.trace("Proxy: Checking whether exact entry is proxied.");
+            return !"proxy".equals(entryExact);
         }
     }
 }
