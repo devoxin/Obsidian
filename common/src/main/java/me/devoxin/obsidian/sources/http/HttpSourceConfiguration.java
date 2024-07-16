@@ -85,7 +85,7 @@ public class HttpSourceConfiguration {
         }
     }
 
-    public boolean isProxied(String exact, String domain, String domainWithoutTld) {
+    public boolean isProxyBypassed(String exact, String domain, String domainWithoutTld) {
         String entryWithoutTld = getEntry(proxy, domainWithoutTld, null);
         String entryDomain = getEntry(proxy, domain, null);
         String entryExact = getEntry(proxy, exact, null);

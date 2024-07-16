@@ -50,7 +50,7 @@ public class HttpAudioTrack extends DelegatedAudioTrack {
     public void process(LocalAudioTrackExecutor localExecutor) throws Exception {
         try (HttpInterface httpInterface = sourceManager.getHttpInterface()) {
             // could probably just use a route planner for this
-            if (!sourceManager.isProxied(trackInfo.identifier)) {
+            if (sourceManager.isProxyBypassed(trackInfo.identifier)) {
                 log.trace("{} is not to be proxied, resetting proxy for this request.", trackInfo.identifier);
 
                 RequestConfig config = RequestConfig.copy(httpInterface.getContext().getRequestConfig())

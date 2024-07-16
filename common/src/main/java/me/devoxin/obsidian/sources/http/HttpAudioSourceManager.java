@@ -96,7 +96,7 @@ public class HttpAudioSourceManager extends ProbingAudioSourceManager implements
         return !httpSourceConfiguration.isBlockAll();
     }
 
-    public boolean isProxied(String url) {
+    public boolean isProxyBypassed(String url) {
         try {
             URIBuilder builder = new URIBuilder(url);
             String exact = builder.getHost();
@@ -108,7 +108,7 @@ public class HttpAudioSourceManager extends ProbingAudioSourceManager implements
                 : hostWithTld;
 
             log.trace("Proxy check: URL: {}\nExact: {}\nDomain (TLD): {}\nDomain (No TLD): {}", url, exact, hostWithTld, hostWithoutTld);
-            return httpSourceConfiguration.isProxied(exact, hostWithTld, hostWithoutTld);
+            return httpSourceConfiguration.isProxyBypassed(exact, hostWithTld, hostWithoutTld);
         } catch (URISyntaxException | IllegalStateException | IllegalArgumentException e) {
             log.debug("Couldn't determine permission of \"{}\"", url, e);
         }
@@ -175,7 +175,7 @@ public class HttpAudioSourceManager extends ProbingAudioSourceManager implements
 
         try (HttpInterface httpInterface = getHttpInterface()) {
             // could probably just use a route planner for this
-            if (!isProxied(reference.identifier)) {
+            if (isProxyBypassed(reference.identifier)) {
                 log.trace("{} is not to be proxied, resetting proxy for this request.", reference.identifier);
 
                 RequestConfig config = RequestConfig.copy(httpInterface.getContext().getRequestConfig())
