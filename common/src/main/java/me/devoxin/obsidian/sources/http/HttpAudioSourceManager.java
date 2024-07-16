@@ -67,8 +67,8 @@ public class HttpAudioSourceManager extends ProbingAudioSourceManager implements
             HttpClientTools.DEFAULT_REQUEST_CONFIG
         );
 
-        log.info("Initialised HTTP source with the following options:\nFollow Redirects: {}\nBlock All: {}\nHosts: {}",
-            configuration.isFollowRedirects(), configuration.isBlockAll(), configuration.getHosts());
+        log.info("Initialised HTTP source with the following options: Follow Redirects = {}, Block All = {}, Proxy All = {}\nHosts: {}\nProxy: {}",
+            configuration.isFollowRedirects(), configuration.isBlockAll(), configuration.isProxyAll(), configuration.getHosts(), configuration.getProxy());
     }
 
     @Override

@@ -47,6 +47,10 @@ public class HttpSourceConfiguration {
         return hosts;
     }
 
+    public Map<String, String> getProxy() {
+        return proxy;
+    }
+
     private String getEntry(Map<String, String> collection, String key, String default_) {
         return collection.getOrDefault(key, default_);
     }
