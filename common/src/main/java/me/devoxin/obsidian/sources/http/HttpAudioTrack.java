@@ -49,19 +49,6 @@ public class HttpAudioTrack extends DelegatedAudioTrack {
     @Override
     public void process(LocalAudioTrackExecutor localExecutor) throws Exception {
         try (HttpInterface httpInterface = sourceManager.getHttpInterface()) {
-            // could probably just use a route planner for this
-            if (sourceManager.isProxyBypassed(trackInfo.identifier)) {
-                log.trace("{} is not to be proxied, resetting proxy for this request.", trackInfo.identifier);
-
-                RequestConfig config = RequestConfig.copy(httpInterface.getContext().getRequestConfig())
-                    .setProxy(null)
-                    .build();
-
-                httpInterface.getContext().setRequestConfig(config);
-            } else {
-                log.trace("Using proxy for {}", trackInfo.identifier);
-            }
-
             log.debug("Starting http track from URL: {}", trackInfo.identifier);
 
             try (PersistentHttpStream inputStream = new PersistentHttpStream(httpInterface, new URI(trackInfo.identifier), Units.CONTENT_LENGTH_UNKNOWN)) {

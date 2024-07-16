@@ -12,10 +12,12 @@ import com.sedmelluq.discord.lavaplayer.track.AudioReference;
 import com.sedmelluq.discord.lavaplayer.track.AudioTrack;
 import com.sedmelluq.discord.lavaplayer.track.AudioTrackInfo;
 import com.sedmelluq.discord.lavaplayer.track.info.AudioTrackInfoBuilder;
+import org.apache.http.HttpHost;
 import org.apache.http.HttpStatus;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.utils.URIBuilder;
 import org.apache.http.impl.client.HttpClientBuilder;
+import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -38,9 +40,8 @@ import static com.sedmelluq.discord.lavaplayer.tools.io.HttpClientTools.getHeade
 public class HttpAudioSourceManager extends ProbingAudioSourceManager implements HttpConfigurable {
     private static final Logger log = LoggerFactory.getLogger(HttpAudioSourceManager.class);
 
-    private final HttpSourceConfiguration httpSourceConfiguration;
     private final HttpInterfaceManager httpInterfaceManager;
-
+    private final HttpSourceConfiguration httpSourceConfiguration;
     /**
      * Create a new instance with default media container registry.
      */
@@ -52,18 +53,30 @@ public class HttpAudioSourceManager extends ProbingAudioSourceManager implements
      * Create a new instance.
      */
     public HttpAudioSourceManager(final MediaContainerRegistry containerRegistry) {
-        this(containerRegistry, HttpSourceConfiguration.defaultConfiguration());
+        this(containerRegistry, HttpSourceConfiguration.defaultConfiguration(), null);
     }
 
     public HttpAudioSourceManager(final MediaContainerRegistry containerRegistry,
                                   final HttpSourceConfiguration configuration) {
+        this(containerRegistry, configuration, null);
+    }
+
+    public HttpAudioSourceManager(final MediaContainerRegistry containerRegistry,
+                                  final HttpSourceConfiguration configuration,
+                                  @Nullable final HttpHost proxy) {
         super(containerRegistry);
 
         this.httpSourceConfiguration = configuration;
+
+        HttpRoutePlanner planner = proxy != null
+            ? new me.devoxin.obsidian.sources.http.HttpRoutePlanner(this, proxy)
+            : null;
+
         this.httpInterfaceManager = new ThreadLocalHttpInterfaceManager(
             HttpClientTools
                 .createSharedCookiesHttpBuilder()
-                .setRedirectStrategy(new HttpClientTools.NoRedirectsStrategy()),
+                .setRedirectStrategy(new HttpClientTools.NoRedirectsStrategy())
+                .setRoutePlanner(planner),
             HttpClientTools.DEFAULT_REQUEST_CONFIG
         );
 
@@ -174,19 +187,6 @@ public class HttpAudioSourceManager extends ProbingAudioSourceManager implements
         MediaContainerDetectionResult result;
 
         try (HttpInterface httpInterface = getHttpInterface()) {
-            // could probably just use a route planner for this
-            if (isProxyBypassed(reference.identifier)) {
-                log.trace("{} is not to be proxied, resetting proxy for this request.", reference.identifier);
-
-                RequestConfig config = RequestConfig.copy(httpInterface.getContext().getRequestConfig())
-                    .setProxy(null)
-                    .build();
-
-                httpInterface.getContext().setRequestConfig(config);
-            } else {
-                log.trace("Using proxy for {}", reference.identifier);
-            }
-
             result = detectContainerWithClient(httpInterface, reference);
         } catch (IOException e) {
             throw new FriendlyException("Connecting to the URL failed.", SUSPICIOUS, e);

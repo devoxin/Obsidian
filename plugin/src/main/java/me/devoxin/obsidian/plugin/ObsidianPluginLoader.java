@@ -50,13 +50,16 @@ public class ObsidianPluginLoader implements AudioPlayerManagerConfiguration {
         // to never be queried.
         scheduler.schedule(() -> {
             log.info("Registering HTTP source...");
-            HttpAudioSourceManager http = new HttpAudioSourceManager(MediaContainerRegistry.DEFAULT_REGISTRY, httpSourceConfig.getAsSourceConfig());
+            HttpHost proxy = serverHttpConfig != null && !serverHttpConfig.getProxyHost().isBlank()
+                ? new HttpHost(serverHttpConfig.getProxyHost(), serverHttpConfig.getProxyPort())
+                : null;
+
+            HttpAudioSourceManager http = new HttpAudioSourceManager(MediaContainerRegistry.DEFAULT_REGISTRY, httpSourceConfig.getAsSourceConfig(), proxy);
 
             if (serverHttpConfig != null) {
                 http.configureBuilder(builder -> {
                     if (!serverHttpConfig.getProxyHost().isBlank()) {
                         log.info("Using HTTP proxy.");
-                        builder.setProxy(new HttpHost(serverHttpConfig.getProxyHost(), serverHttpConfig.getProxyPort()));
 
                         if (!serverHttpConfig.getProxyUser().isBlank()) {
                             log.info("Using HTTP proxy authentication.");
