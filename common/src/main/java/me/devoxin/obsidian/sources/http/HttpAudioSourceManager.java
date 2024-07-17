@@ -126,7 +126,7 @@ public class HttpAudioSourceManager extends ProbingAudioSourceManager implements
             log.debug("Couldn't determine permission of \"{}\"", url, e);
         }
 
-        return httpSourceConfiguration.isProxyAll();
+        return !httpSourceConfiguration.isProxyAll();
     }
 
     @Override
