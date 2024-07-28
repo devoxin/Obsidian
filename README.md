@@ -34,7 +34,7 @@ plugins:
           google.com: 'block' # block google.com specifically. All other Google combinations are permitted.
         proxy:
           example.com: 'bypass' # Requests to this site will not be proxied, regardless of the "proxyAll" setting.
-          some.example.com: 'block'
+          some.example.com: 'proxy' # Can proxy specific subdomains, TLDs or the entire site regardless of TLD.
           sketchy.site: 'proxy' # Requests to this site WILL be proxied, regardless of the "proxyAll" setting.
-          google: 'bypass'
+          google: 'bypass' # All requests to google, regardless of subdomain or TLD will not be proxied.
 ```
