@@ -31,6 +31,7 @@ public class HttpRoutePlanner extends DefaultRoutePlanner {
         }
 
         log.trace("Not using a proxy for {} as it is bypassed.", requestUri);
+        request.removeHeaders("proxy-authorization");
         return null;
     }
 }
